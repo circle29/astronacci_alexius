@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  clerkId     String     @unique
+  membershipId Int 
+  membership Membership @relation(fields: [membershipId], references: [id])
+  videos      UserVideo[]
+  articles    UserArticle[]
+  membershipUpdateAt  DateTime @default(now())
+}
+
+model Membership {
+  id  Int @id @default(autoincrement())
+  membership String
+  videoCount Int  @default(0)
+  articleCount Int @default(0)
+  userId User[]
+}
+
+model UserVideo {
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  video       Video      @relation(fields: [videoId], references: [id])
+  videoId     Int
+  watchedAt   DateTime   @default(now()) 
+  @@unique([userId, videoId])
+}
+
+model UserArticle {
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  article     Article    @relation(fields: [articleId], references: [id])
+  articleId   Int
+  readAt      DateTime   @default(now()) 
+  @@unique([userId, articleId])
+}
+
+model Video {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String? @db.VarChar(500)
+  path        String
+  watchedBy   UserVideo[]
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String? @db.VarChar(2000)
+  readBy      UserArticle[]
+}
+
